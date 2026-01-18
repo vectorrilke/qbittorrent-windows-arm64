@@ -13,8 +13,8 @@ jobs:
       qt_path: "${{ github.workspace }}/qt-mingw-arm64"
       boost_path: "${{ github.workspace }}/boost"
       libt_version: "2.0.11"
-      qbt_version: "5.1.2"
-      qt_version: "6.9.1"
+      qbt_version: "5.1.4"
+      qt_version: "6.9.3"
 
     steps:
       - name: Checkout repository
@@ -34,14 +34,14 @@ jobs:
                                   # action you need, `v11` in this case to stay up
                                   # to date with fixes on the v11 branch
         with:
-          vcpkgGitCommitId: 'dd3097e305afa53f7b4312371f62058d2e665320'
+          vcpkgGitCommitId: '84bab45d415d22042bd0b9081aea57f362da3f35'
 
       - name: Install dependencies from vcpkg
         run: |
           PATH=$PATH:${{ env.llvm_path }}/bin
           # tell vcpkg to only build Release variants of the dependencies
           cd ${{ env.RUNVCPKG_VCPKG_ROOT }}
-          patch -p1 < "${{ github.workspace }}/patches//0001-support-openssl-arm64-mingw-static-release.patch"
+          # patch -p1 < "${{ github.workspace }}/patches//0001-support-openssl-arm64-mingw-static-release.patch"
           echo "set(VCPKG_BUILD_TYPE release)" >> triplets/community/arm64-mingw-dynamic.cmake
           echo "set(VCPKG_BUILD_TYPE release)" >> triplets/community/arm64-mingw-static.cmake
           echo "set(VCPKG_BUILD_TYPE release)" >> triplets/x64-linux.cmake
@@ -54,11 +54,11 @@ jobs:
       - name: Install boost
         run: |
           aria2c \
-            "https://jaist.dl.sourceforge.net/project/boost/boost/1.88.0/boost_1_88_0.7z" \
+            "https://archives.boost.io/release/1.90.0/source/boost_1_90_0.7z" \
             -o "boost.7z"
           7z x "boost.7z"
           rm "boost.7z"
-          mv boost_1_88_0 boost
+          mv boost_1_90_0 boost
 
       - name: Install Qt (host x64)
         uses: jurplel/install-qt-action@v4
@@ -133,7 +133,7 @@ jobs:
           mv qbittorrent_${{ env.qbt_version }}_arm64.zip ..
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: qBittorrent_${{ env.qbt_version }}_arm64
           path: upload
