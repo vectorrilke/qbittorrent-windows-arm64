@@ -51,7 +51,7 @@ jobs:
       - name: Install boost
         run: |
           aria2c `
-            "https://jaist.dl.sourceforge.net/project/boost/boost/1.88.0/boost_1_88_0.7z" `
+            "https://archives.boost.io/release/1.91.0/source/boost_1_91_0.7z" `
             -d "${{ runner.temp }}" `
             -o "boost.7z"
           7z x "${{ runner.temp }}/boost.7z" -o"${{ github.workspace }}/.."
