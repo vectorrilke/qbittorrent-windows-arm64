@@ -107,7 +107,7 @@ jobs:
         run: |
           $env:path = "${{ env.qt_path }}/bin;$env:path"
           $env:LDFLAGS+=" /FORCE:MULTIPLE"
-          aria2c http://prdownloads.sourceforge.net/qbittorrent/qbittorrent/qbittorrent-${{ env.qbt_version }}/qbittorrent-${{ env.qbt_version }}.tar.gz
+          aria2c http://prdownloads.sourceforge.net/qbittorrent/qbittorrent/qbittorrent-${{ env.qbt_version }}/qbittorrent-${{ env.qbt_version }}.tar.xz
           tar -xf qbittorrent-${{ env.qbt_version }}.tar.gz
           cd qbittorrent-${{ env.qbt_version }}
           cmake `
