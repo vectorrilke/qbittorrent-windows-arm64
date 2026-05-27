@@ -110,7 +110,7 @@ jobs:
           # aria2c http://prdownloads.sourceforge.net/qbittorrent/qbittorrent/qbittorrent-${{ env.qbt_version }}/qbittorrent-${{ env.qbt_version }}.tar.xz
           aria2c https://github.com/qbittorrent/qBittorrent/archive/refs/tags/release-${{ env.qbt_version }}.tar.gz
           tar -xf qbittorrent-${{ env.qbt_version }}.tar.gz
-          cd qbittorrent-${{ env.qbt_version }}
+          cd qbittorrent-release-${{ env.qbt_version }}
           cmake `
             -B build `
             -G "Ninja" `
