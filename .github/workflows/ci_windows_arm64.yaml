@@ -11,7 +11,7 @@ jobs:
       boost_path: "${{ github.workspace }}/../boost"
       libtorrent_path: "${{ github.workspace }}/libtorrent-msvc-arm64"
       qt_path: "${{ github.workspace }}/../qt-msvc-arm64"
-      libt_version: "2.0.12"
+      libt_version: "2.1.0-rc1"
       qbt_version: "5.2.1"
       qt_version: "6.11.1"
 
@@ -64,7 +64,7 @@ jobs:
         with:
           aqtversion: '==3.1.*'
           version: "${{ env.qt_version }}"
-          archives: 'qtbase qttools' # added qtsvg
+          archives: 'qtbase qtsvg qttools' # added qtsvg
           set-env: 'false'
           dir: 'C:'
 
