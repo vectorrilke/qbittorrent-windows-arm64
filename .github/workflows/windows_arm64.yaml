@@ -62,9 +62,9 @@ jobs:
       - name: Install Qt (host x64)
         uses: jurplel/install-qt-action@v4
         with:
-          aqtversion: '==3.1.*'
+          aqtversion: '==3.3.*'
           version: "${{ env.qt_version }}"
-          archives: 'qtbase qtsvg qttools' # added qtsvg
+          archives: 'qtbase qttools' # added qtsvg
           set-env: 'false'
           dir: 'C:'
 
