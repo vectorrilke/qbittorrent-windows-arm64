@@ -125,8 +125,9 @@ jobs:
             -DCMAKE_PREFIX_PATH="${{ env.RUNVCPKG_VCPKG_ROOT }}/installed/arm64-windows-static-release" `
             -DCMAKE_TOOLCHAIN_FILE="${{ env.RUNVCPKG_VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake" `
             -DVCPKG_TARGET_TRIPLET=arm64-windows-static-release `
-            -DCMAKE_SKIP_INSTALL_RULES=ON `
-            -DINSTALL_JNITARGETS=OFF
+            -DCMAKE_SKIP_INSTALL_RULES=ON
+
+          # Safe execution targeting specific library installs  
           cmake --build .
           cmake --install .
 
