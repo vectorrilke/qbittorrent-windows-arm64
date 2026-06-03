@@ -11,9 +11,9 @@ jobs:
       boost_path: "${{ github.workspace }}/../boost"
       libtorrent_path: "${{ github.workspace }}/libtorrent-msvc-arm64"
       qt_path: "${{ github.workspace }}/../qt-msvc-arm64"
-      libt_version: "2.0.11"
-      qbt_version: "5.1.0"
-      qt_version: "6.9.0"
+      libt_version: "2.0.12"
+      qbt_version: "5.2.1"
+      qt_version: "6.10.3"
 
     steps:
       - name: Checkout repository
@@ -51,7 +51,7 @@ jobs:
       - name: Install boost
         run: |
           aria2c `
-            "https://jaist.dl.sourceforge.net/project/boost/boost/1.88.0/boost_1_88_0.7z" `
+            "https://archives.boost.io/release/1.91.0/source/boost_1_91_0.7z" `
             -d "${{ runner.temp }}" `
             -o "boost.7z"
           7z x "${{ runner.temp }}/boost.7z" -o"${{ github.workspace }}/.."
