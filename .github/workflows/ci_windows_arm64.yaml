@@ -124,14 +124,10 @@ jobs:
             -system-zlib -schannel -qt-sqlite -sql-sqlite -no-sql-mysql -no-sql-odbc -no-sql-psql -c++std c++20 -- `
             -DCMAKE_PREFIX_PATH="${{ env.RUNVCPKG_VCPKG_ROOT }}/installed/arm64-windows-static-release" `
             -DCMAKE_TOOLCHAIN_FILE="${{ env.RUNVCPKG_VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake" `
-            -DVCPKG_TARGET_TRIPLET=arm64-windows-static-release `
-            -DCMAKE_SKIP_INSTALL_RULES=ON
-
-          # 1. Compile the static target frameworks completely
+            -DVCPKG_TARGET_TRIPLET=arm64-windows-static-release 
+         
           cmake --build .
-          
-          # 2. Tell CMake to deploy only the library binaries, bypassing the install rules glitch
-          cmake --build . --target install
+          cmake --install .
 
       - name: Install libtorrent
         run: |
