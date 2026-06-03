@@ -121,16 +121,17 @@ jobs:
             -static -static-runtime -release -xplatform win32-arm64-msvc `
             -prefix "${{ env.qt_path }}" `
             -qt-host-path "C:/Qt/${{ env.qt_version }}/msvc2022_64" `
-            -system-zlib -schannel -qt-sqlite -sql-sqlite -no-sql-mysql -no-sql-odbc -no-sql-psql -c++std c++20 `
-            -no-tools -- `
+            -system-zlib -schannel -qt-sqlite -sql-sqlite -no-sql-mysql -no-sql-odbc -no-sql-psql -c++std c++20 -- `
             -DCMAKE_PREFIX_PATH="${{ env.RUNVCPKG_VCPKG_ROOT }}/installed/arm64-windows-static-release" `
             -DCMAKE_TOOLCHAIN_FILE="${{ env.RUNVCPKG_VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake" `
             -DVCPKG_TARGET_TRIPLET=arm64-windows-static-release `
             -DCMAKE_SKIP_INSTALL_RULES=ON
 
-          # Safe execution targeting specific library installs  
+          # 1. Compile the static target frameworks completely
           cmake --build .
-          cmake --install .
+          
+          # 2. Tell CMake to deploy only the library binaries, bypassing the install rules glitch
+          cmake --build . --target install
 
       - name: Install libtorrent
         run: |
