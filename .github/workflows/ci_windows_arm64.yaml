@@ -111,6 +111,7 @@ jobs:
 
       - name: Install Qt (target arm64)
         run: |
+          $env:Path = "C:\Qt\{{ env.qt_version }}\msvc2022_64\bin;" + $env:Path
           git clone https://github.com/qt/qt5.git qt6
           cd qt6
           git checkout "v${{ env.qt_version }}"
@@ -124,7 +125,8 @@ jobs:
             -DCMAKE_PREFIX_PATH="${{ env.RUNVCPKG_VCPKG_ROOT }}/installed/arm64-windows-static-release" `
             -DCMAKE_TOOLCHAIN_FILE="${{ env.RUNVCPKG_VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake" `
             -DVCPKG_TARGET_TRIPLET=arm64-windows-static-release `
-            -DCMAKE_SKIP_INSTALL_RULES=ON
+            -DCMAKE_SKIP_INSTALL_RULES=ON `
+            -DINSTALL_JNITARGETS=OFF
           cmake --build .
           cmake --install .
 
