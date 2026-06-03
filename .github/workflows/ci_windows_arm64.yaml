@@ -85,6 +85,13 @@ jobs:
           7z x "${{ runner.temp }}/boost.7z" -o"${{ github.workspace }}/.."
           move "${{ github.workspace }}/../boost_*" "${{ env.boost_path }}"
 
+
+      - name: Build qBittorrent URL
+        shell: pwsh
+        run: |
+          $url = "https://github.com/qbittorrent/qBittorrent/archive/refs/tags/release-${{ env.qbt_version }}.tar.gz"
+          echo "qbt_url=$url" >> $env:GITHUB_ENV
+
       - name: Install Qt (host x64)
         uses: jurplel/install-qt-action@v4
         with:
