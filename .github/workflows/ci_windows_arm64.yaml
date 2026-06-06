@@ -43,6 +43,14 @@ jobs:
           vcpkgDirectory: C:/vcpkg
           doNotUpdateVcpkg: true  # the preinstalled vcpkg is updated regularly
 
+      # Fix backslashes for CMake strings to prevent '\v' escape errors
+      - name: Sanitize vcpkg path for CMake
+        shell: pwsh
+        run: |
+          $clean_path = "${{ env.RUNVCPKG_VCPKG_ROOT }}".Replace('\', '/')
+          echo "VCPKG_CMAKE_ROOT=$clean_path" >> $env:GITHUB_ENV
+      
+
       - name: Install dependencies from vcpkg
         run: |
           # clear buildtrees after each package installation to reduce disk space requirements
@@ -111,7 +119,7 @@ jobs:
 
       - name: Install Qt (target arm64)
         run: |
-          $env:Path = "C:\Qt\{{ env.qt_version }}\msvc2022_64\bin;" + $env:Path
+          $env:Path = "C:\Qt\${{ env.qt_version }}\msvc2022_64\bin;" + $env:Path
           git clone https://github.com/qt/qt5.git qt6
           cd qt6
           git checkout "v${{ env.qt_version }}"
@@ -122,8 +130,8 @@ jobs:
             -prefix "${{ env.qt_path }}" `
             -qt-host-path "C:/Qt/${{ env.qt_version }}/msvc2022_64" `
             -system-zlib -schannel -qt-sqlite -sql-sqlite -no-sql-mysql -no-sql-odbc -no-sql-psql -c++std c++20 -no-spdx-sbom -- `
-            -DCMAKE_PREFIX_PATH="${{ env.RUNVCPKG_VCPKG_ROOT }}/installed/arm64-windows-static-release" `
-            -DCMAKE_TOOLCHAIN_FILE="${{ env.RUNVCPKG_VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake" `
+            -DCMAKE_PREFIX_PATH="${{ env.VCPKG_CMAKE_ROOT }}/installed/arm64-windows-static-release" `
+            -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_CMAKE_ROOT }}/scripts/buildsystems/vcpkg.cmake" `
             -DVCPKG_TARGET_TRIPLET=arm64-windows-static-release 
          
           cmake --build .
