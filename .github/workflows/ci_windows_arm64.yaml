@@ -183,6 +183,7 @@ jobs:
             -DMSVC_RUNTIME_DYNAMIC=OFF `
             -DSTACKTRACE=OFF `
             -DQT_NO_PRIVATE_MODULE_WARNING=ON `
+            -DCMAKE_DISABLE_FIND_PACKAGE_ZLIB=TRUE `
             -DVCPKG_TARGET_TRIPLET=arm64-windows-static-release
           cmake --build build
 
