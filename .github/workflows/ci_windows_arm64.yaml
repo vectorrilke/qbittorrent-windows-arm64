@@ -158,6 +158,30 @@ jobs:
             -DVCPKG_TARGET_TRIPLET=arm64-windows-static-release
           cmake --build build
           cmake --install build
+
+      - name: Hotfix Qt6 ZLIB and OpenSSL Scope Bug
+        shell: powershell
+        run: |
+          $FixCode = @"
+          # Forced Global Promotion Hotfix
+          find_package(ZLIB REQUIRED)
+          if(TARGET ZLIB::ZLIB)
+              set_property(TARGET ZLIB::ZLIB PROPERTY IMPORTED_GLOBAL TRUE)
+          endif()
+          find_package(OpenSSL REQUIRED)
+          if(TARGET OpenSSL::SSL)
+              set_property(TARGET OpenSSL::SSL PROPERTY IMPORTED_GLOBAL TRUE)
+          endif()
+          if(TARGET OpenSSL::Crypto)
+              set_property(TARGET OpenSSL::Crypto PROPERTY IMPORTED_GLOBAL TRUE)
+          endif()
+          "@
+          
+          # Inject the hotfix at the absolute top of the package checking module
+          $Path = "cmake/Modules/CheckPackages.cmake"
+          $OriginalContent = Get-Content $Path -Raw
+          Set-Content $Path -Value ($FixCode + "`n" + $OriginalContent)
+          Write-Host "Successfully injected global target promotion hotfix into $Path"
           
       - name: Build qBittorrent
         run: |
