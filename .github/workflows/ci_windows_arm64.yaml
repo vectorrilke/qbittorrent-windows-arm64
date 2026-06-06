@@ -164,8 +164,8 @@ jobs:
           $env:path = "${{ env.qt_path }}/bin;$env:path"
           $env:LDFLAGS+=" /FORCE:MULTIPLE"
           aria2c "${{ env.qbt_url }}"
-          tar -xf qbittorrent-${{ env.qbt_version }}.tar.gz
-          cd qbittorrent-${{ env.qbt_version }}
+          tar -xf qbittorrent-release-${{ env.qbt_version }}.tar.gz
+          cd qbittorrent-release-${{ env.qbt_version }}
           cmake `
             -B build `
             -G "Ninja" `
@@ -182,8 +182,8 @@ jobs:
       - name: Prepare build artifacts
         run: |
           mkdir upload
-          copy qbittorrent-${{ env.qbt_version }}/build/qbittorrent.exe upload
-          copy qbittorrent-${{ env.qbt_version }}/dist/windows/qt.conf upload
+          copy qbittorrent-release-${{ env.qbt_version }}/build/qbittorrent.exe upload
+          copy qbittorrent-release-${{ env.qbt_version }}/dist/windows/qt.conf upload
           cd upload
           7z a qbittorrent_${{ env.qbt_version }}_arm64.zip *
           mv qbittorrent_${{ env.qbt_version }}_arm64.zip ..
