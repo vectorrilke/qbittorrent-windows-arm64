@@ -170,12 +170,14 @@ jobs:
             -B build `
             -G "Ninja" `
             -DCMAKE_BUILD_TYPE=Release `
-            -DCMAKE_TOOLCHAIN_FILE="${{ env.RUNVCPKG_VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake" `
+            -DCMAKE_PREFIX_PATH="${{ env.qt_path }}" `
+            -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_CMAKE_ROOT }}/scripts/buildsystems/vcpkg.cmake" `
             -DBOOST_ROOT="${{ env.boost_path }}" `
             -DLibtorrentRasterbar_DIR="${{ env.libtorrent_path }}/lib/cmake/LibtorrentRasterbar" `
             -DMSVC_RUNTIME_DYNAMIC=OFF `
             -DSTACKTRACE=OFF `
             -DQT6=ON `
+            -DQT_DEBUG_FIND_PACKAGE=ON `
             -DVCPKG_TARGET_TRIPLET=arm64-windows-static-release
           cmake --build build
 
