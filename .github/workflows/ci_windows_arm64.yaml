@@ -161,7 +161,11 @@ jobs:
           
       - name: Build qBittorrent
         run: |
-          $env:path = "${{ env.qt_path }}/bin;$env:path"
+          # Resolve your custom ARM64 Qt path cleanly
+          $AbsoluteQtPath = (Get-Item "${{ env.qt_path }}").FullName.Replace('\', '/')
+          $HostQtPath = "C:/Qt/${{ env.qt_version }}/msvc2022_64"
+          
+          $env:path = "$AbsoluteQtPath/bin;$env:path"
           $env:LDFLAGS+=" /FORCE:MULTIPLE"
           aria2c "${{ env.qbt_url }}"
           tar -xf qbittorrent-release-${{ env.qbt_version }}.tar.gz
@@ -170,7 +174,9 @@ jobs:
             -B build `
             -G "Ninja" `
             -DCMAKE_BUILD_TYPE=Release `
-            -DCMAKE_PREFIX_PATH="${{ env.qt_path }}" `
+            -DCMAKE_PREFIX_PATH="$AbsoluteQtPath;$HostQtPath" `
+            -DCMAKE_FIND_ROOT_PATH="$AbsoluteQtPath;$HostQtPath" `
+            -DQT_HOST_PATH="$HostQtPath" `
             -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_CMAKE_ROOT }}/scripts/buildsystems/vcpkg.cmake" `
             -DBOOST_ROOT="${{ env.boost_path }}" `
             -DLibtorrentRasterbar_DIR="${{ env.libtorrent_path }}/lib/cmake/LibtorrentRasterbar" `
