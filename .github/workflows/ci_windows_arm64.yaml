@@ -175,8 +175,7 @@ jobs:
             -B build `
             -G "Ninja" `
             -DCMAKE_BUILD_TYPE=Release `
-            -DCMAKE_PREFIX_PATH="$AbsoluteQtPath;$HostQtPath;$VcpkgInstalledPath" `
-            -DCMAKE_FIND_ROOT_PATH="$AbsoluteQtPath;$HostQtPath;$VcpkgInstalledPath" `
+            -DCMAKE_PREFIX_PATH="$AbsoluteQtPath;$HostQtPath" `
             -DQT_HOST_PATH="$HostQtPath" `
             -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_CMAKE_ROOT }}/scripts/buildsystems/vcpkg.cmake" `
             -DBOOST_ROOT="${{ env.boost_path }}" `
