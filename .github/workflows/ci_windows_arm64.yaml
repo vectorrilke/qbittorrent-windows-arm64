@@ -175,15 +175,15 @@ jobs:
             -B build `
             -G "Ninja" `
             -DCMAKE_BUILD_TYPE=Release `
-            -DCMAKE_PREFIX_PATH="$AbsoluteQtPath;$HostQtPath" `
+            -DCMAKE_PREFIX_PATH="$AbsoluteQtPath;$HostQtPath;$VcpkgInstalledPath" `
             -DQT_HOST_PATH="$HostQtPath" `
             -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_CMAKE_ROOT }}/scripts/buildsystems/vcpkg.cmake" `
+            -DVCPKG_MANIFEST_MODE=OFF `
             -DBOOST_ROOT="${{ env.boost_path }}" `
             -DLibtorrentRasterbar_DIR="${{ env.libtorrent_path }}/lib/cmake/LibtorrentRasterbar" `
             -DMSVC_RUNTIME_DYNAMIC=OFF `
             -DSTACKTRACE=OFF `
             -DQT_NO_PRIVATE_MODULE_WARNING=ON `
-            -DCMAKE_DISABLE_FIND_PACKAGE_ZLIB=TRUE `
             -DVCPKG_TARGET_TRIPLET=arm64-windows-static-release
           cmake --build build
 
