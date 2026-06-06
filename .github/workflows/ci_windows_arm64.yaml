@@ -164,6 +164,7 @@ jobs:
           # Resolve your custom ARM64 Qt path cleanly
           $AbsoluteQtPath = (Get-Item "${{ env.qt_path }}").FullName.Replace('\', '/')
           $HostQtPath = "C:/Qt/${{ env.qt_version }}/msvc2022_64"
+          $VcpkgInstalledPath = "C:/vcpkg/installed/arm64-windows-static-release"
           
           $env:path = "$AbsoluteQtPath/bin;$env:path"
           $env:LDFLAGS+=" /FORCE:MULTIPLE"
@@ -174,16 +175,15 @@ jobs:
             -B build `
             -G "Ninja" `
             -DCMAKE_BUILD_TYPE=Release `
-            -DCMAKE_PREFIX_PATH="$AbsoluteQtPath;$HostQtPath" `
-            -DCMAKE_FIND_ROOT_PATH="$AbsoluteQtPath;$HostQtPath" `
+            -DCMAKE_PREFIX_PATH="$AbsoluteQtPath;$HostQtPath;$VcpkgInstalledPath" `
+            -DCMAKE_FIND_ROOT_PATH="$AbsoluteQtPath;$HostQtPath;$VcpkgInstalledPath" `
             -DQT_HOST_PATH="$HostQtPath" `
             -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_CMAKE_ROOT }}/scripts/buildsystems/vcpkg.cmake" `
             -DBOOST_ROOT="${{ env.boost_path }}" `
             -DLibtorrentRasterbar_DIR="${{ env.libtorrent_path }}/lib/cmake/LibtorrentRasterbar" `
             -DMSVC_RUNTIME_DYNAMIC=OFF `
             -DSTACKTRACE=OFF `
-            -DQT6=ON `
-            -DQT_DEBUG_FIND_PACKAGE=ON `
+            -DQT_NO_PRIVATE_MODULE_WARNING=ON `
             -DVCPKG_TARGET_TRIPLET=arm64-windows-static-release
           cmake --build build
 
