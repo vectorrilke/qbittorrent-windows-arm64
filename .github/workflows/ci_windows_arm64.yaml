@@ -158,10 +158,21 @@ jobs:
             -DVCPKG_TARGET_TRIPLET=arm64-windows-static-release
           cmake --build build
           cmake --install build
-
-      - name: Hotfix Qt6 ZLIB and OpenSSL Scope Bug
-        shell: powershell
+          
+      - name: Build qBittorrent
         run: |
+          # Resolve your custom ARM64 Qt path cleanly
+          $AbsoluteQtPath = (Get-Item "${{ env.qt_path }}").FullName.Replace('\', '/')
+          $HostQtPath = "C:/Qt/${{ env.qt_version }}/msvc2022_64"
+          $VcpkgInstalledPath = "C:/vcpkg/installed/arm64-windows-static-release"
+          
+          $env:path = "$AbsoluteQtPath/bin;$env:path"
+          $env:LDFLAGS+=" /FORCE:MULTIPLE"
+          aria2c "${{ env.qbt_url }}"
+          tar -xf qbittorrent-release-${{ env.qbt_version }}.tar.gz
+          cd qbittorrent-release-${{ env.qbt_version }}
+
+          # --- HOTFIX: Force Global Visibility for ZLIB & OpenSSL ---
           $FixCode = @"
           # Forced Global Promotion Hotfix
           find_package(ZLIB REQUIRED)
@@ -177,24 +188,12 @@ jobs:
           endif()
           "@
           
-          # Inject the hotfix at the absolute top of the package checking module
           $Path = "cmake/Modules/CheckPackages.cmake"
           $OriginalContent = Get-Content $Path -Raw
           Set-Content $Path -Value ($FixCode + "`n" + $OriginalContent)
           Write-Host "Successfully injected global target promotion hotfix into $Path"
+          # --- END HOTFIX ---
           
-      - name: Build qBittorrent
-        run: |
-          # Resolve your custom ARM64 Qt path cleanly
-          $AbsoluteQtPath = (Get-Item "${{ env.qt_path }}").FullName.Replace('\', '/')
-          $HostQtPath = "C:/Qt/${{ env.qt_version }}/msvc2022_64"
-          $VcpkgInstalledPath = "C:/vcpkg/installed/arm64-windows-static-release"
-          
-          $env:path = "$AbsoluteQtPath/bin;$env:path"
-          $env:LDFLAGS+=" /FORCE:MULTIPLE"
-          aria2c "${{ env.qbt_url }}"
-          tar -xf qbittorrent-release-${{ env.qbt_version }}.tar.gz
-          cd qbittorrent-release-${{ env.qbt_version }}
           cmake `
             -B build `
             -G "Ninja" `
