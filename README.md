@@ -8,6 +8,6 @@ This is a fork of minnnyres' [repo](https://github.com/minnyres/qbittorrent-wind
 All other credit goes to [minnyres](https://github.com/minnyres/qbittorrent-windows-arm64).
 
 ## Release Notes
--   5.2.2 Compatibility: The updated workflow designed for qBittorrent 5.2.1 remains fully compatible with version 5.2.2.
--   Automated Publishing: Starting with version 5.2.2, the workflow now automatically publishes builds directly to GitHub Releases.
+-   **5.2.2 Compatibility:** The updated workflow designed for qBittorrent 5.2.1 remains fully compatible with version 5.2.2.
+-   **Automated Publishing:** Starting with version 5.2.2, the workflow now automatically publishes builds directly to GitHub Releases.
 
