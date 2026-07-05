@@ -1,5 +1,6 @@
-# Ensure imported dependency targets from vcpkg are visible to downstream packages
-# during the qBittorrent configure step.
+# Make imported dependency targets from vcpkg visible to downstream CMake packages.
+# This is used by the Windows ARM64 CI workflow to satisfy Qt/libtorrent/qBittorrent
+# package-config dependencies that otherwise fail with "target was not found".
 
 find_package(ZLIB REQUIRED)
 if(TARGET ZLIB::ZLIB)
