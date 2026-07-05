@@ -1,15 +1,31 @@
-# Make imported dependency targets from vcpkg visible to downstream CMake packages.
-# This is used by the Windows ARM64 CI workflow to satisfy Qt/libtorrent/qBittorrent
-# package-config dependencies that otherwise fail with "target was not found".
+# Create the imported dependency targets explicitly so downstream CMake packages
+# can resolve OpenSSL/ZLIB link interfaces during the Windows ARM64 CI build.
 
-find_package(ZLIB REQUIRED)
-if(TARGET ZLIB::ZLIB)
-  set_property(TARGET ZLIB::ZLIB PROPERTY IMPORTED_GLOBAL TRUE)
+set(_ci_zlib_root "$ENV{ZLIB_ROOT}")
+if(NOT _ci_zlib_root)
+  set(_ci_zlib_root "$ENV{VCPKG_ROOT}/installed/arm64-windows-static-release")
 endif()
 
-find_package(OpenSSL REQUIRED)
-foreach(_target IN ITEMS OpenSSL::SSL OpenSSL::Crypto)
-  if(TARGET ${_target})
-    set_property(TARGET ${_target} PROPERTY IMPORTED_GLOBAL TRUE)
-  endif()
-endforeach()
+if(NOT TARGET ZLIB::ZLIB)
+  add_library(ZLIB::ZLIB STATIC IMPORTED GLOBAL)
+  set_target_properties(ZLIB::ZLIB PROPERTIES
+    IMPORTED_LOCATION "${_ci_zlib_root}/lib/zlib.lib"
+    INTERFACE_INCLUDE_DIRECTORIES "${_ci_zlib_root}/include"
+  )
+endif()
+
+if(NOT TARGET OpenSSL::SSL)
+  add_library(OpenSSL::SSL STATIC IMPORTED GLOBAL)
+  set_target_properties(OpenSSL::SSL PROPERTIES
+    IMPORTED_LOCATION "${OPENSSL_SSL_LIBRARY}"
+    INTERFACE_INCLUDE_DIRECTORIES "${OPENSSL_INCLUDE_DIR}"
+  )
+endif()
+
+if(NOT TARGET OpenSSL::Crypto)
+  add_library(OpenSSL::Crypto STATIC IMPORTED GLOBAL)
+  set_target_properties(OpenSSL::Crypto PROPERTIES
+    IMPORTED_LOCATION "${OPENSSL_CRYPTO_LIBRARY}"
+    INTERFACE_INCLUDE_DIRECTORIES "${OPENSSL_INCLUDE_DIR}"
+  )
+endif()
