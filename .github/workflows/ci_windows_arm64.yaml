@@ -178,28 +178,6 @@ jobs:
           tar -xf qbittorrent-release-${{ env.qbt_version }}.tar.gz
           cd qbittorrent-release-${{ env.qbt_version }}
 
-          # --- HOTFIX: Force Global Visibility for ZLIB & OpenSSL ---
-          $FixCode = @"
-          # Forced Global Promotion Hotfix
-          find_package(ZLIB REQUIRED)
-          if(TARGET ZLIB::ZLIB)
-              set_property(TARGET ZLIB::ZLIB PROPERTY IMPORTED_GLOBAL TRUE)
-          endif()
-          find_package(OpenSSL REQUIRED)
-          if(TARGET OpenSSL::SSL)
-              set_property(TARGET OpenSSL::SSL PROPERTY IMPORTED_GLOBAL TRUE)
-          endif()
-          if(TARGET OpenSSL::Crypto)
-              set_property(TARGET OpenSSL::Crypto PROPERTY IMPORTED_GLOBAL TRUE)
-          endif()
-          "@
-          
-          $Path = "cmake/Modules/CheckPackages.cmake"
-          $OriginalContent = Get-Content $Path -Raw
-          Set-Content $Path -Value ($FixCode + "`n" + $OriginalContent)
-          Write-Host "Successfully injected global target promotion hotfix into $Path"
-          # --- END HOTFIX ---
-          
           cmake `
             -B build `
             -G "Ninja" `
@@ -210,6 +188,9 @@ jobs:
             -DVCPKG_MANIFEST_MODE=OFF `
             -DBOOST_ROOT="${{ env.boost_path }}" `
             -DLibtorrentRasterbar_DIR="${{ env.libtorrent_path }}/lib/cmake/LibtorrentRasterbar" `
+            -DOPENSSL_ROOT_DIR="$VcpkgInstalledPath" `
+            -DZLIB_ROOT="$VcpkgInstalledPath" `
+            -DCMAKE_FIND_PACKAGE_TARGETS_GLOBAL=TRUE `
             -DMSVC_RUNTIME_DYNAMIC=OFF `
             -DSTACKTRACE=OFF `
             -DQT_NO_PRIVATE_MODULE_WARNING=ON `
