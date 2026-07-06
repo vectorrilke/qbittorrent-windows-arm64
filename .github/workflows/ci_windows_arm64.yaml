@@ -181,10 +181,42 @@ jobs:
           cd qbittorrent-release-${{ env.qbt_version }}
 
           $ZlibIncludeDir = "$VcpkgInstalledPath/include"
-          $ZlibLibrary = "$VcpkgInstalledPath/lib/zlib.lib"
+          $ZlibLibraryCandidates = @(
+            "$VcpkgInstalledPath/lib/zlib.lib",
+            "$VcpkgInstalledPath/lib/Release/zlib.lib"
+          )
+          $ZlibLibrary = $ZlibLibraryCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $ZlibLibrary) {
+            $ZlibLibrary = Get-ChildItem -Path "$VcpkgInstalledPath/lib" -Filter "zlib*.lib" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName -First 1
+          }
+          if (-not $ZlibLibrary) {
+            throw "Could not locate zlib.lib under $VcpkgInstalledPath"
+          }
+
           $OpenSslIncludeDir = "$VcpkgInstalledPath/include"
-          $OpenSslCryptoLibrary = "$VcpkgInstalledPath/lib/libcrypto.lib"
-          $OpenSslSslLibrary = "$VcpkgInstalledPath/lib/libssl.lib"
+          $OpenSslCryptoCandidates = @(
+            "$VcpkgInstalledPath/lib/libcrypto.lib",
+            "$VcpkgInstalledPath/lib/crypto.lib"
+          )
+          $OpenSslCryptoLibrary = $OpenSslCryptoCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $OpenSslCryptoLibrary) {
+            $OpenSslCryptoLibrary = Get-ChildItem -Path "$VcpkgInstalledPath/lib" -Filter "libcrypto*.lib" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName -First 1
+          }
+          if (-not $OpenSslCryptoLibrary) {
+            throw "Could not locate libcrypto.lib under $VcpkgInstalledPath"
+          }
+
+          $OpenSslSslCandidates = @(
+            "$VcpkgInstalledPath/lib/libssl.lib",
+            "$VcpkgInstalledPath/lib/ssl.lib"
+          )
+          $OpenSslSslLibrary = $OpenSslSslCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $OpenSslSslLibrary) {
+            $OpenSslSslLibrary = Get-ChildItem -Path "$VcpkgInstalledPath/lib" -Filter "libssl*.lib" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName -First 1
+          }
+          if (-not $OpenSslSslLibrary) {
+            throw "Could not locate libssl.lib under $VcpkgInstalledPath"
+          }
 
           cmake `
             -B build `
@@ -207,7 +239,6 @@ jobs:
             -DZLIB_LIBRARY="$ZlibLibrary" `
             -DZLIB_LIBRARY_RELEASE="$ZlibLibrary" `
             -DZLIB_LIBRARY_DEBUG="$ZlibLibrary" `
-            -DZLIB_USE_STATIC_LIBS=TRUE `
             -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES="${{ github.workspace }}/cmake/ci/force-global-imported-targets.cmake" `
             -DCMAKE_FIND_PACKAGE_TARGETS_GLOBAL=TRUE `
             -DMSVC_RUNTIME_DYNAMIC=OFF `
