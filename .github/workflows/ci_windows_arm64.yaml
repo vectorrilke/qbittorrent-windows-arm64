@@ -181,10 +181,27 @@ jobs:
           cd qbittorrent-release-${{ env.qbt_version }}
 
           $ZlibIncludeDir = "$VcpkgInstalledPath/include"
-          $ZlibLibrary = "$VcpkgInstalledPath/lib/zlib.lib"
+          Write-Host "Searching for zlib.lib under $VcpkgInstalledPath"
+          $ZlibLibrary = Get-ChildItem -Path "$VcpkgInstalledPath/lib" -Filter "zlib*.lib" -Recurse -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName -First 1
+          if (-not $ZlibLibrary) {
+            throw "Could not locate zlib.lib under $VcpkgInstalledPath"
+          }
+          Write-Host "Using Zlib library: $ZlibLibrary"
+
           $OpenSslIncludeDir = "$VcpkgInstalledPath/include"
-          $OpenSslCryptoLibrary = "$VcpkgInstalledPath/lib/libcrypto.lib"
-          $OpenSslSslLibrary = "$VcpkgInstalledPath/lib/libssl.lib"
+          Write-Host "Searching for libcrypto.lib under $VcpkgInstalledPath"
+          $OpenSslCryptoLibrary = Get-ChildItem -Path "$VcpkgInstalledPath/lib" -Filter "libcrypto*.lib" -Recurse -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName -First 1
+          if (-not $OpenSslCryptoLibrary) {
+            throw "Could not locate libcrypto.lib under $VcpkgInstalledPath"
+          }
+          Write-Host "Using OpenSSL crypto library: $OpenSslCryptoLibrary"
+
+          Write-Host "Searching for libssl.lib under $VcpkgInstalledPath"
+          $OpenSslSslLibrary = Get-ChildItem -Path "$VcpkgInstalledPath/lib" -Filter "libssl*.lib" -Recurse -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName -First 1
+          if (-not $OpenSslSslLibrary) {
+            throw "Could not locate libssl.lib under $VcpkgInstalledPath"
+          }
+          Write-Host "Using OpenSSL ssl library: $OpenSslSslLibrary"
 
           cmake `
             -B build `
