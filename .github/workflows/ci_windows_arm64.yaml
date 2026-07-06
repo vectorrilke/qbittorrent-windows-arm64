@@ -13,46 +13,35 @@ permissions:
 
 jobs:
   build-windows-arm64:
-          # Build CMake argument array and only include ZLIB library flags if found.
-          $cmakeArgs = @(
-            '-B', 'build',
-            '-G', 'Ninja',
-            '-DCMAKE_BUILD_TYPE=Release',
-            "-DCMAKE_PREFIX_PATH=$AbsoluteQtPath;$HostQtPath;$VcpkgInstalledPath",
-            "-DQT_HOST_PATH=$HostQtPath",
-            "-DQt6_DIR=$AbsoluteQtPath/lib/cmake/Qt6",
-            "-DCMAKE_TOOLCHAIN_FILE=${{ env.VCPKG_CMAKE_ROOT }}/scripts/buildsystems/vcpkg.cmake",
-            '-DVCPKG_MANIFEST_MODE=OFF',
-            "-DBOOST_ROOT=${{ env.boost_path }}",
-            "-DLibtorrentRasterbar_DIR=${{ env.libtorrent_path }}/lib/cmake/LibtorrentRasterbar",
-            "-DOPENSSL_ROOT_DIR=$VcpkgInstalledPath",
-            "-DOPENSSL_INCLUDE_DIR=$OpenSslIncludeDir",
-            "-DOPENSSL_CRYPTO_LIBRARY=$OpenSslCryptoLibrary",
-            "-DOPENSSL_SSL_LIBRARY=$OpenSslSslLibrary",
-            '-DOPENSSL_USE_STATIC_LIBS=TRUE',
-            "-DZLIB_ROOT=$VcpkgInstalledPath",
-            "-DZLIB_INCLUDE_DIR=$ZlibIncludeDir",
-            "-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=${{ github.workspace }}/cmake/ci/force-global-imported-targets.cmake",
-            '-DCMAKE_FIND_PACKAGE_TARGETS_GLOBAL=TRUE',
-            '-DMSVC_RUNTIME_DYNAMIC=OFF',
-            '-DSTACKTRACE=OFF',
-            '-DQT_NO_PRIVATE_MODULE_WARNING=ON',
-            '-DVCPKG_TARGET_TRIPLET=arm64-windows-static-release'
-          )
+    name: Build
+    runs-on: windows-latest
+    env:
+      boost_path: "${{ github.workspace }}/../boost"
+      libtorrent_path: "${{ github.workspace }}/libtorrent-msvc-arm64"
+      qt_path: "${{ github.workspace }}/../qt-msvc-arm64"
+      boost_version: "1.91.0"
+      libt_version: "2.0.13"
+      qbt_version: "5.2.2"
+      qt_version: "6.10.3"
+      qbt_url_base: "https://github.com/qbittorrent/qBittorrent/archive/refs/tags"
+      qbt_url_prefix: "release-"
+      qbt_url_suffix: ".tar.gz"
+      boost_url: "https://archives.boost.io/release/{version}/source/boost_{version_underscored}.7z"
 
-          if ($ZlibLibrary) {
-            Write-Host "Adding explicit ZLIB library: $ZlibLibrary"
-            $cmakeArgs += "-DZLIB_LIBRARY=$ZlibLibrary"
-            $cmakeArgs += "-DZLIB_LIBRARY_RELEASE=$ZlibLibrary"
-            $cmakeArgs += "-DZLIB_LIBRARY_DEBUG=$ZlibLibrary"
-            $cmakeArgs += "-DZLIB_USE_STATIC_LIBS=TRUE"
-          } else {
-            Write-Host "Warning: zlib.lib not found; relying on vcpkg toolchain to provide ZLIB targets"
-          }
+      
 
-          Write-Host "Invoking cmake with arguments:`n$($cmakeArgs -join ' ')"
-          & cmake @cmakeArgs
-          cmake --build build
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup devcmd
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: amd64_arm64
+
+      - name: Install build tools
+        run: |
+          choco install ninja
 
       # use the preinstalled vcpkg from image
       # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2019-Readme.md#package-management
@@ -66,11 +55,15 @@ jobs:
       - name: Sanitize vcpkg path for CMake
         shell: pwsh
         run: |
-          $clean_path = "${{ env.RUNVCPKG_VCPKG_ROOT }}".Replace('\', '/')
+          if (-not $env:RUNVCPKG_VCPKG_ROOT) {
+            throw "RUNVCPKG_VCPKG_ROOT is not set"
+          }
+          $clean_path = "${{ env.RUNVCPKG_VCPKG_ROOT }}".Replace('\\', '/')
           echo "VCPKG_CMAKE_ROOT=$clean_path" >> $env:GITHUB_ENV
+          echo "VCPKG_ROOT=$env:RUNVCPKG_VCPKG_ROOT" >> $env:GITHUB_ENV
       
-
       - name: Install dependencies from vcpkg
+        shell: pwsh
         run: |
           # clear buildtrees after each package installation to reduce disk space requirements
           $packages = `
@@ -204,14 +197,19 @@ jobs:
           $ZlibIncludeDir = "$VcpkgInstalledPath/include"
           $ZlibLibraryCandidates = @(
             "$VcpkgInstalledPath/lib/zlib.lib",
-            "$VcpkgInstalledPath/lib/Release/zlib.lib"
+            "$VcpkgInstalledPath/lib/libzlib.lib",
+            "$VcpkgInstalledPath/lib/zlibstatic.lib",
+            "$VcpkgInstalledPath/lib/libzlibd.lib",
+            "$VcpkgInstalledPath/lib/zlibstaticd.lib"
           )
           $ZlibLibrary = $ZlibLibraryCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
           if (-not $ZlibLibrary) {
-            $ZlibLibrary = Get-ChildItem -Path "$VcpkgInstalledPath/lib" -Filter "zlib*.lib" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName -First 1
+            $ZlibLibrary = Get-ChildItem -Path "$VcpkgInstalledPath/lib" -Filter "*zlib*.lib" -File -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName -First 1
           }
           if (-not $ZlibLibrary) {
-            throw "Could not locate zlib.lib under $VcpkgInstalledPath"
+            Write-Host "Warning: zlib library not found under $VcpkgInstalledPath/lib; relying on vcpkg toolchain / helper file to resolve ZLIB::ZLIB"
+          } else {
+            Write-Host "Found zlib library: $ZlibLibrary"
           }
 
           $OpenSslIncludeDir = "$VcpkgInstalledPath/include"
@@ -239,33 +237,43 @@ jobs:
             throw "Could not locate libssl.lib under $VcpkgInstalledPath"
           }
 
-          cmake `
-            -B build `
-            -G "Ninja" `
-            -DCMAKE_BUILD_TYPE=Release `
-            -DCMAKE_PREFIX_PATH="$AbsoluteQtPath;$HostQtPath;$VcpkgInstalledPath" `
-            -DQT_HOST_PATH="$HostQtPath" `
-            -DQt6_DIR="$AbsoluteQtPath/lib/cmake/Qt6" `
-            -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_CMAKE_ROOT }}/scripts/buildsystems/vcpkg.cmake" `
-            -DVCPKG_MANIFEST_MODE=OFF `
-            -DBOOST_ROOT="${{ env.boost_path }}" `
-            -DLibtorrentRasterbar_DIR="${{ env.libtorrent_path }}/lib/cmake/LibtorrentRasterbar" `
-            -DOPENSSL_ROOT_DIR="$VcpkgInstalledPath" `
-            -DOPENSSL_INCLUDE_DIR="$OpenSslIncludeDir" `
-            -DOPENSSL_CRYPTO_LIBRARY="$OpenSslCryptoLibrary" `
-            -DOPENSSL_SSL_LIBRARY="$OpenSslSslLibrary" `
-            -DOPENSSL_USE_STATIC_LIBS=TRUE `
-            -DZLIB_ROOT="$VcpkgInstalledPath" `
-            -DZLIB_INCLUDE_DIR="$ZlibIncludeDir" `
-            -DZLIB_LIBRARY="$ZlibLibrary" `
-            -DZLIB_LIBRARY_RELEASE="$ZlibLibrary" `
-            -DZLIB_LIBRARY_DEBUG="$ZlibLibrary" `
-            -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES="${{ github.workspace }}/cmake/ci/force-global-imported-targets.cmake" `
-            -DCMAKE_FIND_PACKAGE_TARGETS_GLOBAL=TRUE `
-            -DMSVC_RUNTIME_DYNAMIC=OFF `
-            -DSTACKTRACE=OFF `
-            -DQT_NO_PRIVATE_MODULE_WARNING=ON `
-            -DVCPKG_TARGET_TRIPLET=arm64-windows-static-release
+          $cmakeArgs = @(
+            '-B', 'build',
+            '-G', 'Ninja',
+            '-DCMAKE_BUILD_TYPE=Release',
+            "-DCMAKE_PREFIX_PATH=$AbsoluteQtPath;$HostQtPath;$VcpkgInstalledPath",
+            "-DQT_HOST_PATH=$HostQtPath",
+            "-DQt6_DIR=$AbsoluteQtPath/lib/cmake/Qt6",
+            "-DCMAKE_TOOLCHAIN_FILE=${{ env.VCPKG_CMAKE_ROOT }}/scripts/buildsystems/vcpkg.cmake",
+            '-DVCPKG_MANIFEST_MODE=OFF',
+            "-DBOOST_ROOT=${{ env.boost_path }}",
+            "-DLibtorrentRasterbar_DIR=${{ env.libtorrent_path }}/lib/cmake/LibtorrentRasterbar",
+            "-DOPENSSL_ROOT_DIR=$VcpkgInstalledPath",
+            "-DOPENSSL_INCLUDE_DIR=$OpenSslIncludeDir",
+            "-DOPENSSL_CRYPTO_LIBRARY=$OpenSslCryptoLibrary",
+            "-DOPENSSL_SSL_LIBRARY=$OpenSslSslLibrary",
+            '-DOPENSSL_USE_STATIC_LIBS=TRUE',
+            "-DZLIB_ROOT=$VcpkgInstalledPath",
+            "-DZLIB_INCLUDE_DIR=$ZlibIncludeDir",
+            "-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=${{ github.workspace }}/cmake/ci/force-global-imported-targets.cmake",
+            '-DCMAKE_FIND_PACKAGE_TARGETS_GLOBAL=TRUE',
+            '-DMSVC_RUNTIME_DYNAMIC=OFF',
+            '-DSTACKTRACE=OFF',
+            '-DQT_NO_PRIVATE_MODULE_WARNING=ON',
+            '-DVCPKG_TARGET_TRIPLET=arm64-windows-static-release'
+          )
+
+          if ($ZlibLibrary) {
+            $cmakeArgs += "-DZLIB_LIBRARY=$ZlibLibrary"
+            $cmakeArgs += "-DZLIB_LIBRARY_RELEASE=$ZlibLibrary"
+            $cmakeArgs += "-DZLIB_LIBRARY_DEBUG=$ZlibLibrary"
+            $cmakeArgs += "-DZLIB_USE_STATIC_LIBS=TRUE"
+          } else {
+            Write-Host "No explicit ZLIB library found; relying on vcpkg toolchain / helper file to resolve ZLIB::ZLIB"
+          }
+
+          Write-Host "Invoking cmake with arguments:`n$($cmakeArgs -join ' ')"
+          & cmake @cmakeArgs
           cmake --build build
 
       - name: Prepare build artifacts
