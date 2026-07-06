@@ -9,6 +9,9 @@ if(NOT _ci_zlib_root)
   set(_ci_zlib_root "$ENV{VCPKG_ROOT}/installed/arm64-windows-static-release")
 endif()
 
+# Normalize any backslashes from environment paths to avoid CMake escape parsing issues.
+string(REPLACE "\\" "/" _ci_zlib_root "${_ci_zlib_root}")
+
 set(_ci_zlib_lib "${_ci_zlib_root}/lib/zlib.lib")
 if(NOT EXISTS "${_ci_zlib_lib}")
   set(_ci_zlib_lib "${_ci_zlib_root}/lib/libzlib.lib")
