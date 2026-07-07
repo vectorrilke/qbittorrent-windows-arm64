@@ -123,7 +123,7 @@ jobs:
       - name: Install Qt (host x64)
         uses: jurplel/install-qt-action@v4
         with:
-          aqtversion: '==3.3.*'
+          aqtversion: '==3.3.*' 
           version: "${{ env.qt_version }}"
           archives: 'qtbase qttools'
           set-env: 'false'
@@ -252,6 +252,7 @@ jobs:
 
           $BoostRoot = (Get-Item "${{ env.boost_path }}").FullName.Replace('\\','/')
           $LibtorrentRasterbarDir = (Get-Item "${{ env.libtorrent_path }}").FullName.Replace('\\','/') + '/lib/cmake/LibtorrentRasterbar'
+          $ProjectIncludes = (Get-Item "${{ github.workspace }}/cmake/ci/force-global-imported-targets.cmake").FullName.Replace('\\','/')
           $cmakeArgs = @(
             '-B', 'build',
             '-G', 'Ninja',
@@ -270,6 +271,8 @@ jobs:
             '-DOPENSSL_USE_STATIC_LIBS=TRUE',
             "-DZLIB_ROOT=$VcpkgInstalledPath",
             "-DZLIB_INCLUDE_DIR=$ZlibIncludeDir",
+            "-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=$ProjectIncludes",
+            '-DCMAKE_FIND_PACKAGE_TARGETS_GLOBAL=TRUE',
             '-DMSVC_RUNTIME_DYNAMIC=OFF',
             '-DSTACKTRACE=OFF',
             '-DQT_NO_PRIVATE_MODULE_WARNING=ON',
