@@ -236,6 +236,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           name: qBittorrent ${{ env.qbt_version }} (Windows ARM64)
+          tag_name: v${{ env.qbt_version }} 
           files: qbittorrent_${{ env.qbt_version }}_arm64.zip
           draft: false
           prerelease: false
