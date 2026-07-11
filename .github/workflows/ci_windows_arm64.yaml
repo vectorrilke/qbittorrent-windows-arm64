@@ -239,7 +239,7 @@ jobs:
           tag_name: v${{ env.qbt_version }} 
           files: qbittorrent_${{ env.qbt_version }}_arm64.zip
           draft: false
-          prerelease: false
+          prerelease: true
           body: |
             ### Build Dependency Components:
             * **qBittorrent:** ${{ env.qbt_version }}
