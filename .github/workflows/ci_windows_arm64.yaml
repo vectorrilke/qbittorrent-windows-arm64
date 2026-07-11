@@ -21,7 +21,7 @@ jobs:
       qt_path: "${{ github.workspace }}/../qt-msvc-arm64"
       boost_version: "1.91.0"
       libt_version: "2.0.13"
-      qbt_version: "5.2.1"
+      qbt_version: "5.2.3"
       qt_version: "6.10.3"
       qbt_url_base: "https://github.com/qbittorrent/qBittorrent/archive/refs/tags"
       qbt_url_prefix: "release-"
@@ -287,7 +287,7 @@ jobs:
           name: qBittorrent ${{ env.qbt_version }} (Windows ARM64)
           files: qbittorrent_${{ env.qbt_version }}_arm64.zip
           draft: false
-          prerelease: false
+          prerelease: true
           body: |
             ### Build Dependency Components:
             * **qBittorrent:** ${{ env.qbt_version }}
